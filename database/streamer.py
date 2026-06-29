@@ -11,8 +11,9 @@ import sqlite3
 import threading
 import time
 import uuid
-from datetime import datetime, timedelta
 from pathlib import Path
+from datetime import datetime, timedelta, timezone
+IST = timezone(timedelta(hours=5, minutes=30))
 
 DB_PATH = Path(__file__).resolve().parent / "finshield.db"
 
@@ -30,17 +31,17 @@ CUSTOMERS = [
 ]
 
 CITIES = [
-    "Hyderabad","Mumbai","Bangalore","Pune","Delhi",
-    "Chennai","Ahmedabad","Jaipur","Kochi","Other",
+    "Hyderabad", "Mumbai", "Bangalore", "Pune", "Delhi",
+    "Chennai", "Ahmedabad", "Jaipur", "Kochi", "Other",
 ]
 
 MERCHANTS = [
-    "Suspicious Merchant","Blocked Merchant",
-    "Unknown Merchant","High Risk Merchant","Other Merchants",
-    "Amazon","Flipkart","BigBasket","Swiggy","Zomato",
+    "Suspicious Merchant", "Blocked Merchant",
+    "Unknown Merchant", "High Risk Merchant", "Other Merchants",
+    "Amazon", "Flipkart", "BigBasket", "Swiggy", "Zomato",
 ]
 
-PAYMENT_TYPES    = ["UPI", "Card", "NetBanking", "Wallet"]
+PAYMENT_TYPES = ["UPI", "Card", "NetBanking", "Wallet"]
 ACCOUNT_STATUSES = ["Active", "Blocked", "Suspended"]
 
 
@@ -70,10 +71,10 @@ def _create_tables(conn: sqlite3.Connection) -> None:
 
 def _gen_tx(ts: datetime) -> dict:
     cid, cname, _ = random.choice(CUSTOMERS)
-    city    = random.choice(CITIES)
-    amount  = round(random.uniform(500, 120_000), 2)
+    city = random.choice(CITIES)
+    amount = round(random.uniform(500, 120_000), 2)
     merchant = random.choice(MERCHANTS)
-    acct    = random.choice(ACCOUNT_STATUSES)
+    acct = random.choice(ACCOUNT_STATUSES)
 
     reasons: list[str] = []
     if amount > 50_000:
@@ -85,17 +86,18 @@ def _gen_tx(ts: datetime) -> dict:
     if city in ("Hyderabad", "Mumbai", "Delhi") and amount > 40_000:
         reasons.append("HIGH_RISK_CITY")
 
-    is_fraud = len(reasons) >= 2 or (len(reasons) == 1 and random.random() < 0.3)
+    is_fraud = len(reasons) >= 2 or (
+        len(reasons) == 1 and random.random() < 0.3)
 
     fraud_decision = "FRAUD" if is_fraud else "CLEAN"
-    fraud_score    = random.randint(65, 99) if is_fraud else random.randint(5, 45)
+    fraud_score = random.randint(65, 99) if is_fraud else random.randint(5, 45)
 
     if is_fraud:
         fraud_severity = "CRITICAL" if fraud_score >= 85 else "HIGH"
-        fraud_reason   = " + ".join(reasons) if reasons else "OTHER_RULES"
+        fraud_reason = " + ".join(reasons) if reasons else "OTHER_RULES"
     else:
         fraud_severity = "LOW"
-        fraud_reason   = ""
+        fraud_reason = ""
 
     return {
         "transaction_id":     str(uuid.uuid4()),
@@ -113,7 +115,7 @@ def _gen_tx(ts: datetime) -> dict:
         "fraud_reason":       fraud_reason,
         "risk_level":         "HIGH" if is_fraud else "LOW",
         "account_status":     acct,
-        "event_timestamp":    ts.strftime("%Y-%m-%d %H:%M:%S"),
+        "event_timestamp": ts.astimezone(IST).strftime("%Y-%m-%d %H:%M:%S"),
     }
 
 
@@ -135,9 +137,9 @@ def ensure_seeded(min_rows: int = 1500) -> None:
     _create_tables(conn)
     count = conn.execute("SELECT COUNT(*) FROM transactions").fetchone()[0]
     if count < min_rows:
-        now   = datetime.now()
+        now = datetime.now(tz=IST)
         start = now - timedelta(hours=24)
-        rows  = []
+        rows = []
         for i in range(min_rows - count):
             ts = start + timedelta(seconds=i * (86400 / min_rows))
             rows.append(_gen_tx(ts))
@@ -163,7 +165,7 @@ def _stream_worker(interval: float) -> None:
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     _create_tables(conn)
     while True:
-        _insert(conn, _gen_tx(datetime.now()))
+        _insert(conn, _gen_tx(datetime.now(tz=IST)))
         time.sleep(interval)
 
 
