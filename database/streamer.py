@@ -135,6 +135,22 @@ def ensure_seeded(min_rows: int = 1500) -> None:
     """Seed historical data if DB is empty (called at app startup)."""
     conn = sqlite3.connect(DB_PATH, check_same_thread=False)
     _create_tables(conn)
+
+    # Check if timestamps are in UTC (old data) — if so, wipe and reseed
+    sample = conn.execute(
+        "SELECT event_timestamp FROM transactions LIMIT 1"
+    ).fetchone()
+
+    if sample:
+        from datetime import datetime, timezone, timedelta
+        IST = timezone(timedelta(hours=5, minutes=30))
+        ts_hour = int(sample[0][11:13])  # extract hour from timestamp
+        ist_hour = datetime.now(tz=IST).hour
+        # if DB hour is 5+ hours behind current IST hour, it's UTC data
+        if abs(ist_hour - ts_hour) >= 5:
+            conn.execute("DELETE FROM transactions")
+            conn.commit()
+
     count = conn.execute("SELECT COUNT(*) FROM transactions").fetchone()[0]
     if count < min_rows:
         now = datetime.now(tz=IST)
