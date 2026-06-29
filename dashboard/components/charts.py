@@ -9,18 +9,18 @@ from datetime import datetime, timedelta
 
 
 # ── shared config ─────────────────────────────────────────────────────────────
-CHART_BG     = "rgba(0,0,0,0)"
-GRID_COLOR   = "rgba(255,255,255,0.05)"
-TEXT_COLOR   = "#8892a4"
-FONT_FAMILY  = "Inter, sans-serif"
+CHART_BG = "rgba(0,0,0,0)"
+GRID_COLOR = "rgba(255,255,255,0.05)"
+TEXT_COLOR = "#8892a4"
+FONT_FAMILY = "Inter, sans-serif"
 
-BLUE   = "#4299e1"
-RED    = "#e53e3e"
+BLUE = "#4299e1"
+RED = "#e53e3e"
 PURPLE = "#805ad5"
 ORANGE = "#dd6b20"
-GREEN  = "#38a169"
-AMBER  = "#d69e2e"
-TEAL   = "#319795"
+GREEN = "#38a169"
+AMBER = "#d69e2e"
+TEAL = "#319795"
 COLORS = [BLUE, PURPLE, GREEN, ORANGE, TEAL, AMBER, RED, "#ed64a6"]
 
 
@@ -56,10 +56,11 @@ def render_severity_donut(fraud_df: pd.DataFrame) -> None:
     counts = fraud_df["fraud_severity"].value_counts()
     labels = counts.index.tolist()
     values = counts.values.tolist()
-    total  = sum(values)
+    total = sum(values)
 
-    color_map = {"CRITICAL": RED, "HIGH": ORANGE, "MEDIUM": AMBER, "LOW": GREEN}
-    colors    = [color_map.get(l, BLUE) for l in labels]
+    color_map = {"CRITICAL": RED, "HIGH": ORANGE,
+                 "MEDIUM": AMBER, "LOW": GREEN}
+    colors = [color_map.get(l, BLUE) for l in labels]
 
     fig = go.Figure(go.Pie(
         labels=labels, values=values,
@@ -77,7 +78,8 @@ def render_severity_donut(fraud_df: pd.DataFrame) -> None:
     )
 
     fig.update_layout(**_base_layout(height=220))
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True,
+                    config={"displayModeBar": False})
 
     # Legend
     for label, val in zip(labels, values):
@@ -115,10 +117,13 @@ def render_city_bar(fraud_df: pd.DataFrame) -> None:
 
     fig.update_layout(
         **_base_layout(height=220),
-        xaxis=dict(tickfont=dict(size=10, color=TEXT_COLOR), gridcolor=GRID_COLOR),
-        yaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(size=9, color=TEXT_COLOR)),
+        xaxis=dict(tickfont=dict(size=10, color=TEXT_COLOR),
+                   gridcolor=GRID_COLOR),
+        yaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(
+            size=9, color=TEXT_COLOR)),
     )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True,
+                    config={"displayModeBar": False})
 
 
 def render_merchant_bar(fraud_df: pd.DataFrame) -> None:
@@ -140,10 +145,13 @@ def render_merchant_bar(fraud_df: pd.DataFrame) -> None:
     ))
     fig.update_layout(
         **_base_layout(height=220),
-        xaxis=dict(tickfont=dict(size=9, color=TEXT_COLOR), gridcolor=GRID_COLOR),
-        yaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(size=9, color=TEXT_COLOR)),
+        xaxis=dict(tickfont=dict(size=9, color=TEXT_COLOR),
+                   gridcolor=GRID_COLOR),
+        yaxis=dict(gridcolor=GRID_COLOR, tickfont=dict(
+            size=9, color=TEXT_COLOR)),
     )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True,
+                    config={"displayModeBar": False})
 
 
 # ── Row 2: Table + Risk Customers ─────────────────────────────────────────────
@@ -155,7 +163,8 @@ def render_fraud_table(fraud_df: pd.DataFrame) -> None:
         st.info("No fraud alerts.")
         return
 
-    cols = ["event_timestamp", "customer_name", "city", "amount", "fraud_score", "fraud_severity", "fraud_reason"]
+    cols = ["event_timestamp", "customer_name", "city", "amount",
+            "fraud_score", "fraud_severity", "fraud_reason"]
     available = [c for c in cols if c in fraud_df.columns]
     df = fraud_df[available].head(7).copy()
 
@@ -173,9 +182,11 @@ def render_fraud_table(fraud_df: pd.DataFrame) -> None:
         "fraud_severity": "Severity", "fraud_reason": "Reason",
     }
 
-    header_html = "".join(f"<th>{headers_map.get(c,c)}</th>" for c in available)
+    header_html = "".join(
+        f"<th>{headers_map.get(c, c)}</th>" for c in available)
 
-    color_map = {"CRITICAL": "#e53e3e", "HIGH": "#dd6b20", "MEDIUM": "#d69e2e", "LOW": "#38a169"}
+    color_map = {"CRITICAL": "#e53e3e", "HIGH": "#dd6b20",
+                 "MEDIUM": "#d69e2e", "LOW": "#38a169"}
 
     rows_html = ""
     for _, row in df.iterrows():
@@ -207,7 +218,8 @@ def render_risk_customers(fraud_df: pd.DataFrame) -> None:
     with col1:
         _card("Top Risk Customers", "👥", "#1a2035")
     with col2:
-        st.markdown('<div style="text-align:right;padding-top:2px"><a class="fs-view-all" href="#">View All</a></div>', unsafe_allow_html=True)
+        st.markdown(
+            '<div style="text-align:right;padding-top:2px"><a class="fs-view-all" href="#">View All</a></div>', unsafe_allow_html=True)
 
     if fraud_df.empty or "customer_name" not in fraud_df.columns:
         st.info("No data.")
@@ -242,7 +254,8 @@ def render_risk_customers(fraud_df: pd.DataFrame) -> None:
         ),
         yaxis=dict(tickfont=dict(size=10, color="#f0f4ff")),
     )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True,
+                    config={"displayModeBar": False})
 
 
 # ── Row 3: Reason Donut + 24h Trend + Severity Summary ───────────────────────
@@ -255,8 +268,8 @@ def render_reason_donut(fraud_df: pd.DataFrame) -> None:
         return
 
     reasons = fraud_df["fraud_reason"].replace("", "OTHER_RULES")
-    top5    = reasons.value_counts().head(5)
-    total   = top5.sum()
+    top5 = reasons.value_counts().head(5)
+    total = top5.sum()
 
     fig = go.Figure(go.Pie(
         labels=top5.index.tolist(), values=top5.values.tolist(),
@@ -266,7 +279,8 @@ def render_reason_donut(fraud_df: pd.DataFrame) -> None:
         hovertemplate="<b>%{label}</b><br>%{value} (%{percent})<extra></extra>",
     ))
     fig.update_layout(**_base_layout(height=180))
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True,
+                    config={"displayModeBar": False})
 
     for i, (reason, val) in enumerate(top5.items()):
         pct = val / total * 100 if total else 0
@@ -288,18 +302,19 @@ def render_trend_chart(all_df: pd.DataFrame, fraud_df: pd.DataFrame) -> None:
         return
 
     df = fraud_df.copy()
-    df["event_timestamp"] = pd.to_datetime(df["event_timestamp"], errors="coerce")
+    df["event_timestamp"] = pd.to_datetime(
+        df["event_timestamp"], errors="coerce")
     df = df.dropna(subset=["event_timestamp"])
 
-    now   = datetime.now()
+    now = datetime.now()
     start = now - timedelta(hours=24)
-    df    = df[df["event_timestamp"] >= pd.Timestamp(start)]
+    df = df[df["event_timestamp"] >= pd.Timestamp(start)]
 
     if df.empty:
         st.info("No data in last 24h.")
         return
 
-    df["hour"] = df["event_timestamp"].dt.floor("H")
+    df["hour"] = df["event_timestamp"].dt.floor("h")
     hourly = df.groupby("hour").size().reset_index(name="count")
 
     fig = go.Figure()
@@ -321,7 +336,8 @@ def render_trend_chart(all_df: pd.DataFrame, fraud_df: pd.DataFrame) -> None:
             tickfont=dict(size=9, color=TEXT_COLOR),
         ),
     )
-    st.plotly_chart(fig, use_container_width=True, config={"displayModeBar": False})
+    st.plotly_chart(fig, use_container_width=True,
+                    config={"displayModeBar": False})
 
 
 def render_severity_summary(metrics: dict) -> None:
@@ -329,8 +345,8 @@ def render_severity_summary(metrics: dict) -> None:
 
     crit = metrics.get("critical_alerts", 0)
     high = metrics.get("high_alerts",     0)
-    med  = metrics.get("medium_alerts",   0)
-    low  = metrics.get("low_alerts",      0)
+    med = metrics.get("medium_alerts",   0)
+    low = metrics.get("low_alerts",      0)
     total = crit + high + med + low or 1
 
     items = [
