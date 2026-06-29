@@ -1,0 +1,39 @@
+### Python
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.Python
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+### Virtual envs
+.venv/
+venv/
+env/
+ENV/
+
+### Database (auto-generated, do NOT commit)
+database/finshield.db
+database/finshield_live.duckdb
+data/output/
+
+### macOS
+.DS_Store
+.AppleDouble
+
+### IDE
+.idea/
+.vscode/
+*.swp
+*.swo
+
+### Streamlit
+.streamlit/secrets.toml
+
+### Logs
+*.log
+logs/
