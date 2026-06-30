@@ -7,7 +7,17 @@ by using a built-in background data simulator.
 """
 
 from __future__ import annotations
-from datetime import datetime
+from pathlib import Path
+import sys
+import streamlit as st
+from streamlit_autorefresh import st_autorefresh
+from dashboard.styles import load_css
+from dashboard.load_data import load_data
+from dashboard.metrics import calculate_metrics
+from dashboard.components.sidebar import render_sidebar
+from dashboard.components.header import render_header
+from dashboard.components.live_alert import render_live_alert
+from dashboard.components.kpi_cards import render_kpi_cards
 from dashboard.components.charts import (
     render_severity_donut,
     render_city_bar,
@@ -18,18 +28,10 @@ from dashboard.components.charts import (
     render_trend_chart,
     render_severity_summary,
 )
-from dashboard.components.kpi_cards import render_kpi_cards
-from dashboard.components.live_alert import render_live_alert
-from dashboard.components.header import render_header
-from dashboard.components.sidebar import render_sidebar
-from dashboard.metrics import calculate_metrics
-from dashboard.load_data import load_data
-from dashboard.styles import load_css
-from streamlit_autorefresh import st_autorefresh
-import streamlit as st
+from datetime import datetime, timezone, timedelta
 
-import sys
-from pathlib import Path
+IST = timezone(timedelta(hours=5, minutes=30))
+
 
 # ── path setup ─────────────────────────────────────────────────────────────
 ROOT = Path(__file__).resolve().parent.parent
@@ -44,7 +46,7 @@ for p in [str(ROOT), str(DASH_DIR), str(DB_DIR)]:
 from database.streamer import ensure_seeded, start_streaming  # noqa: E402
 
 ensure_seeded(min_rows=1500)
-start_streaming(interval=4.0)
+start_streaming(interval=1.0)
 
 # ── streamlit ──────────────────────────────────────────────────────────────
 
@@ -200,6 +202,5 @@ st.markdown(f"""
         <div class="fs-footer-chip">⚡ <span>Processing: PySpark Structured Streaming</span></div>
         <div class="fs-footer-chip">📊 <span>Visualization: Streamlit + Plotly</span></div>
     </div>
-    <div>🕐 Last Updated: {datetime.now().strftime("%d %b %Y %H:%M:%S")}</div>
-</div>
+    <div>🕐 Last Updated: {datetime.now(tz=IST).strftime("%d %b %Y %H:%M:%S")}</div>
 """, unsafe_allow_html=True)
