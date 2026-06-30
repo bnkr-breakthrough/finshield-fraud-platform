@@ -37,3 +37,5 @@ data/output/
 ### Logs
 *.log
 logs/
+finshield_*.csv
+*.png
