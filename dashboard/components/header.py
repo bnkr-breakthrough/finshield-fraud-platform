@@ -1,12 +1,14 @@
 """FinShield — Top Bar Header"""
 
 from __future__ import annotations
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 import streamlit as st
+
+IST = timezone(timedelta(hours=5, minutes=30))
 
 
 def render_header() -> None:
-    now = datetime.now()
+    now = datetime.now(tz=IST)
     date_str = now.strftime("%d %b %Y")
     time_str = now.strftime("%I:%M %p")
 
